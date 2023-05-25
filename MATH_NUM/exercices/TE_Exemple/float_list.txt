@@ -1,0 +1,11 @@
+Fl(beta,  n, M1, M2)
+Fl(   5,  3, -2,  3)
+
+Nombre de nombres positifs :      3000
+epsilon :                         0.008
+Plus petite valeur :              0.04
+Plus petite valeur dénormalisée : 0.00032
+Plus grande valeur :              624
+
+Index	  Mantisse		 Exposant		 Resultat
+-----------------------------------------------------
