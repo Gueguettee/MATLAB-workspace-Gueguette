@@ -22,7 +22,7 @@ nValueForMean = 1;
 for l=1:1:length(out)-nValueForMean
     dOut(l) = out(l+nValueForMean)-out(l);  %/1
 end
-%dOut = diff(out);
+%dOut = diff(out);  % autre méthode
 
 plot(t(1:end-1), dOut)
 
@@ -49,11 +49,8 @@ xlabel("f (Hz)")
 ylabel("H(jw) (dB)")
 hold on
 nexttile
-semilogx(f, angle(round(tf, 6).*exp(j*2*pi*f.*10.67e-3)));%Avec correction
-%
-%semilogx(f, angle(round(tf, 6)));
+semilogx(f, angle(round(tf, 6).*exp(j*2*pi*f.*10.67e-3))); %Avec correction
+%semilogx(f, angle(round(tf, 6))); % sans correction
 
 f_pic = 370;
-H_pic = 12.96; % dB
-H_0 = -6.05; %dB
-
+H_pic = 18.99; % dB
