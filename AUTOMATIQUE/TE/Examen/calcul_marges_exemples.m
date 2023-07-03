@@ -15,7 +15,8 @@ nyquist(sys);
 [Mg,Mp,wg,wp] = margin(sys)
 MgdB=20*log10(Mg)
 %% sys=tf(num,den);FT 1er ordre (constante de temps)
-den=[1 1];num=[1];
+den=[0.1 3 20 0];num=[12.5];
+sys=tf(num,den);
 
 figure(1);bode(sys,{0.01,100});
 figure(2);nyquist(sys,{0.001,10000})
