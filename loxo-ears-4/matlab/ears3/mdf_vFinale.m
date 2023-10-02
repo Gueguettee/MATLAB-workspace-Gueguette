@@ -2,7 +2,7 @@
 
 clc; %clear all; %close all; 
  
-rootdirectory = 'Sounds';
+rootdirectory = 'Sounds'
 
 [dataRL,Fs] = audioread(fullfile(rootdirectory,'Police2.mp3'));%pour la fenetre
 [dataRL2,Fs2] = audioread(fullfile(rootdirectory,'Police2.mp3'));%pour le reste du signal audio
