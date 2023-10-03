@@ -89,4 +89,3 @@ end
 
 figure(4)
 stem(t, angleMaxCorrCycle)
-
