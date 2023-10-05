@@ -8,29 +8,30 @@ R = 1;
 L = 2;
 
 vSound = 343;
-dMicro = 1;
 
-angleMax = 90;
-angleMin = -angleMax;
-angleMiddle = 0;
+v_max_alpha = 25;
+v_max_emergency = 70;
+v_diff_max = v_max_alpha + v_max_emergency;
 
-[data, Fs(1)] = audioread(fullfile(sounddirectory,'1.mp3'));
-[data2, Fs(2)] = audioread(fullfile(sounddirectory,'3.mp3'));
-if length(data2) < length(data)
-    data = data(1:length(data2),:);
-end
+Fmax_meas = 4000;     % à ajuster
+Fmin_meas = 200;     % à ajuster
+F_step = 20;
+fmin = 360;
+fmax = 630;
+fmin = fmin - fmin*v_diff_max/3.6/vSound;
+fmax = fmax + fmax*v_diff_max/3.6/vSound;
+
+[data, Fs] = audioread(fullfile(sounddirectory,'PoliceSuisse.mp3'));
 
 data = data';
-data2 = data2';
-data(2,:) = data2(1,1:length(data));
 lData = length(data);
 % figure(1)
 % plot(data(1,:))
 % hold on
 % plot(data(2,:))
 
-maxDelay = dMicro/vSound;
-minDelay = 0;
+maxDelay = 1/Fmin_meas;% à ajuster
+minDelay = 1/Fmax_meas;% à ajuster
 
 Ps = 1/Fs(1);
 maxLag = round(maxDelay/Ps);
@@ -39,18 +40,19 @@ stepLag = 1;
 nLag = floor(maxLag - minLag)/stepLag + 1; % "+1" pour le 0 de lag
 
 time_audio = lData*Ps;
-time_bigStep = 0.05;
-time_microStep = 0.001;
+time_bigCycle = 0.05;
+time_microCylce = 0.001;
 
-n_microCycleInBigCycle = uint32(floor(time_bigStep/time_microStep));
-n_data_microCycle = uint32(floor(time_microStep/Ps));
+tic
+n_microCycleInBigCycle = floor(time_bigCycle/time_microCylce);
+n_data_microCycle = floor(time_microCylce/Ps);
 n_data_bigCycle = n_data_microCycle*n_microCycleInBigCycle;
-%n_bigCycle = uint32(floor(lData/n_data_bigCycle));
-n_microCycle = uint32(floor((lData-maxLag)/n_data_microCycle)-2);   % bizarre à corriger
+%n_bigCycle = floor(lData/n_data_bigCycle);
+n_microCycle = floor((lData-maxLag)/n_data_microCycle)-1;   % bizarre à corriger
 
 corrMicroCycle = zeros(nLag,n_microCycleInBigCycle);
 corrBigCycle = zeros(1, nLag);
-delayMaxCorrMicroCycle = zeros(1,n_microCycle);
+maxFreqMicroCycle = zeros(1,n_microCycle);
 for microCycle=1:n_microCycle
     for lag=minLag:stepLag:maxLag
         iLag = (lag-minLag)/stepLag+1;
@@ -77,23 +79,43 @@ for microCycle=1:n_microCycle
 
     [maxCorr, indexMaxCorr] = max(corrBigCycle(:));
     lagMaxCorr = indexMaxCorr-1+minLag;
-    delayMaxCorrMicroCycle(microCycle) = lagMaxCorr*Ps;
+    freq = 1/(lagMaxCorr * Ps);
+    if((freq < fmin)||(freq > fmax))
+        freq = 0;
+    end
+    maxFreqMicroCycle(microCycle) = freq;
 end
+toc
 
-t = 0:time_microStep:time_audio-6*time_microStep;
+t = linspace(0.0, (n_microCycle*Ps), n_microCycle);
 figure(3)
-stem(t, delayMaxCorrMicroCycle)
+stem(t, maxFreqMicroCycle)
 
-%% Mesurer l'angle du véhicule approchant en fonction du retard calculé
+%% Sirene detection 
 
-angleMaxCorrCycle = zeros(1,n_microCycle);
+siren = zeros(1,length(maxFreqMicroCycle));
 
-for cycle=1:n_microCycle
-    dDelay = delayMaxCorrMicroCycle(cycle) * vSound;
-    angle = acos(dDelay/dMicro);
-    angleDeg = angle * 360 / (2*pi);
-    angleMaxCorrCycle(cycle) = angleDeg;
+tolMeas = 0.1;
+tolMeasFreq = F_step;
+
+rapport = 3/4;
+minRapport = 3/4*(1-0.03);
+maxRapport = 3/4*(1+0.07);
+
+timeCylceSiren = 3;
+tolTimeCycleSiren = 0.167;% 1/6
+timeCylceSirenMin = timeCylceSiren*(1-tolTimeCycleSiren);
+timeCylceSirenMax = timeCylceSiren*(1+tolTimeCycleSiren);
+
+timeSizeSlide = time_bigCycle;
+
+
+freqFlag = false;
+for microCycle=1:n_microCycle
+    if maxFreqMicroCycle(microCycle) ~= 0
+        freqFlag = true;
+    end
 end
 
-figure(4)
-stem(t, angleMaxCorrCycle)
+figure(3)
+stem(t, siren)

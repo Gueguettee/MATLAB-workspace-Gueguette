@@ -2,7 +2,7 @@
 
 clc; clear; close all; 
 
-sounddirectory = 'Sounds';
+sounddirectory = 'tb-simsound3d\Enregistrement\Audio\AvecBruitAveDecalage';
 
 R = 1;
 L = 2;
@@ -14,8 +14,8 @@ angleMax = 90;
 angleMin = -angleMax;
 angleMiddle = 0;
 
-[data, Fs(1)] = audioread(fullfile(sounddirectory,'1.mp3'));
-[data2, Fs(2)] = audioread(fullfile(sounddirectory,'3.mp3'));
+[data, Fs(1)] = audioread(fullfile(sounddirectory,'RecorderBack.wav'));
+[data2, Fs(2)] = audioread(fullfile(sounddirectory,'RecorderFront.wav'));
 if length(data2) < length(data)
     data = data(1:length(data2),:);
 end
@@ -24,10 +24,10 @@ data = data';
 data2 = data2';
 data(2,:) = data2(1,1:length(data));
 lData = length(data);
-% figure(1)
-% plot(data(1,:))
-% hold on
-% plot(data(2,:))
+figure(1)
+plot(data(1,:))
+hold on
+plot(data(2,:))
 
 maxDelay = dMicro/vSound;
 minDelay = 0;
@@ -42,11 +42,11 @@ time_audio = lData*Ps;
 time_bigStep = 0.05;
 time_microStep = 0.001;
 
-n_microCycleInBigCycle = uint32(floor(time_bigStep/time_microStep));
-n_data_microCycle = uint32(floor(time_microStep/Ps));
+n_microCycleInBigCycle = floor(time_bigStep/time_microStep);
+n_data_microCycle = floor(time_microStep/Ps);
 n_data_bigCycle = n_data_microCycle*n_microCycleInBigCycle;
-%n_bigCycle = uint32(floor(lData/n_data_bigCycle));
-n_microCycle = uint32(floor((lData-maxLag)/n_data_microCycle)-2);   % bizarre à corriger
+%n_bigCycle = floor(lData/n_data_bigCycle);
+n_microCycle = floor((lData-maxLag)/n_data_microCycle);   % bizarre à corriger
 
 corrMicroCycle = zeros(nLag,n_microCycleInBigCycle);
 corrBigCycle = zeros(1, nLag);
@@ -80,7 +80,7 @@ for microCycle=1:n_microCycle
     delayMaxCorrMicroCycle(microCycle) = lagMaxCorr*Ps;
 end
 
-t = 0:time_microStep:time_audio-6*time_microStep;
+t = linspace(0.0, (n_microCycle*Ps), n_microCycle);
 figure(3)
 stem(t, delayMaxCorrMicroCycle)
 
@@ -90,6 +90,10 @@ angleMaxCorrCycle = zeros(1,n_microCycle);
 
 for cycle=1:n_microCycle
     dDelay = delayMaxCorrMicroCycle(cycle) * vSound;
+    if dDelay == 0
+        angleMaxCorrCycle(cycle) = 0;
+        continue
+    end
     angle = acos(dDelay/dMicro);
     angleDeg = angle * 360 / (2*pi);
     angleMaxCorrCycle(cycle) = angleDeg;
