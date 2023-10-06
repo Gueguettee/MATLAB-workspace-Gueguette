@@ -22,7 +22,7 @@ end
 
 data = data';
 data2 = data2';
-data(2,:) = data2(1,1:length(data));
+data(1,:) = data2(1,1:length(data));
 lData = length(data);
 figure(1)
 plot(data(1,:))
@@ -30,7 +30,7 @@ hold on
 plot(data(2,:))
 
 maxDelay = dMicro/vSound;
-minDelay = 0;
+minDelay = -maxDelay;
 
 Ps = 1/Fs(1);
 maxLag = round(maxDelay/Ps);
@@ -46,7 +46,7 @@ n_microCycleInBigCycle = floor(time_bigStep/time_microStep);
 n_data_microCycle = floor(time_microStep/Ps);
 n_data_bigCycle = n_data_microCycle*n_microCycleInBigCycle;
 %n_bigCycle = floor(lData/n_data_bigCycle);
-n_microCycle = floor((lData-maxLag)/n_data_microCycle);   % bizarre à corriger
+n_microCycle = floor((lData-maxLag)/n_data_microCycle);
 
 corrMicroCycle = zeros(nLag,n_microCycleInBigCycle);
 corrBigCycle = zeros(1, nLag);
@@ -55,10 +55,13 @@ for microCycle=1:n_microCycle
     for lag=minLag:stepLag:maxLag
         iLag = (lag-minLag)/stepLag+1;
         offsetMicroCycle = (microCycle-1)*n_data_microCycle;
+        if lag<0
+            offsetMicroCycle = (microCycle-1)*n_data_microCycle-lag;
+        end
         endMicroCycle = offsetMicroCycle+n_data_microCycle;
         sumToAdd = 0;
         for t=offsetMicroCycle+1:endMicroCycle
-            sumToAdd = sumToAdd + data(R,t)*data(R,t+lag);
+            sumToAdd = sumToAdd + data(R,t)*data(R,t+lag);  %tester les 2 possibilité
         end
         iMicroCycle = mod(microCycle, n_microCycleInBigCycle);
         if iMicroCycle == 0
@@ -80,7 +83,7 @@ for microCycle=1:n_microCycle
     delayMaxCorrMicroCycle(microCycle) = lagMaxCorr*Ps;
 end
 
-t = linspace(0.0, (n_microCycle*Ps), n_microCycle);
+t = linspace(0.0, (n_microCycle*n_data_microCycle*Ps), n_microCycle);
 figure(3)
 stem(t, delayMaxCorrMicroCycle)
 
