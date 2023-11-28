@@ -1,7 +1,8 @@
 %%
 close all; clear; clc;
 
-data=readtable('data.csv');
+%data=readtable('data.csv');
+
 
 %%
 
@@ -49,7 +50,7 @@ xlabel("f (Hz)")
 ylabel("H(jw) (dB)")
 hold on
 nexttile
-semilogx(f, angle(round(tf, 6).*exp(j*2*pi*f.*10.67e-3))); %Avec correction
+semilogx(f, angle(round(tf, 6).*exp(1i*2*pi*f.*10.67e-3))); %Avec correction
 %semilogx(f, angle(round(tf, 6))); % sans correction
 
 f_pic = 370;
