@@ -13,7 +13,7 @@ t = linspace(0,1/50e6*(length(bits)-1),length(bits));
 
 %%
 
-plot(t, bits)
+%plot(t, bits)
 
 if bits(1) > ref
     temp_ref = 1;
@@ -41,15 +41,15 @@ end
 
 iStart = i1 - ratio;
 
-bitstream = zeros(size(bits));
-len = length(bits);
-for l=iStart:ratio:len
-    if bits(l) > ref
+len = floor(length(bits)/ratio);
+bitstream = zeros(len, 1);
+for l=iStart:1:len
+    if bits((l-1)*ratio) > ref
         bitstream(l) = 1;
     else
         bitstream(l) = 0;
     end
 end
 
-plot(bitstream)
-writematrix(bitstream', 'output.csv');
+%plot(bitstream)
+writematrix(bitstream, 'output.txt');
