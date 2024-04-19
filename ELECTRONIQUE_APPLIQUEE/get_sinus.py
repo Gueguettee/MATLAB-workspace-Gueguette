@@ -23,9 +23,9 @@ for n in range(1, math.floor(1/f/step/2)):
         min = res
         n_min = n
 
-plt.plot(array2, array)
-plt.show()
-
 print(min)
 print(n_min*step)
+
+plt.plot(array2, array)
+plt.show()
     
